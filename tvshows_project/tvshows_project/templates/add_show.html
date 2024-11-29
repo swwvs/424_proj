@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}Add TV Show{% endblock %}
+
+{% block content %}
+<h2>Add TV Show</h2>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    
+    <!-- Form fields are rendered here -->
+    <div class="mb-3">
+        {{ form.as_p }}
+    </div>
+    
+    <!-- Custom field rendering for photo to allow preview (optional) -->
+    <div class="mb-3">
+        <label for="{{ form.photo.id_for_label }}" class="form-label">Show Photo</label>
+        <input type="file" name="photo" class="form-control" id="{{ form.photo.id_for_label }}">
+    </div>
+    
+    <button type="submit" class="btn btn-primary">Add Show</button>
+</form>
+{% endblock %}
