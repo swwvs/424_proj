@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete TV Show{% endblock %}
+
+{% block content %}
+<h2>Are you sure you want to delete "{{ show.title }}"?</h2>
+
+{% if messages %}
+    <div class="alert alert-info">
+        {% for message in messages %}
+            <p>{{ message }}</p>
+        {% endfor %}
+    </div>
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+</form>
+
+{% endblock %}
