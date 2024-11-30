@@ -7,22 +7,73 @@
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     
-    <!-- Form fields are rendered here -->
+    <!-- Display validation errors as an alert -->
+    {% if messages %}
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <strong>Error:</strong>
+            <ul>
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endif %}
+    
+    <!-- Title field -->
     <div class="mb-3">
-        {{ form.as_p }}
-    </div>
-
-    <!-- Custom rendering for photo upload field -->
-    <div class="mb-3">
-        <label for="{{ form.photo.id_for_label }}" class="form-label">Show Photo</label>
-        {% if form.instance.photo %}
-            <div class="mb-2">
-                <img src="{{ form.instance.photo.url }}" alt="Current Photo" class="img-thumbnail" style="width: 100px;">
-            </div>
-        {% endif %}
-        <input type="file" name="photo" class="form-control" id="{{ form.photo.id_for_label }}">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" name="title" class="form-control" id="title" value="{{ show.title }}">
     </div>
     
+    <!-- Genre field -->
+    <div class="mb-3">
+        <label for="genre" class="form-label">Genre</label>
+        <input type="text" name="genre" class="form-control" id="genre" value="{{ show.genre }}">
+    </div>
+    
+    <!-- Description field -->
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea name="description" class="form-control" id="description">{{ show.description }}</textarea>
+    </div>
+
+    <!-- Release Date field -->
+    <div class="mb-3">
+        <label for="release_date" class="form-label">Release Date</label>
+        <input type="date" name="release_date" class="form-control" id="release_date" value="{{ show.release_date|date:'Y-m-d' }}">
+    </div>
+
+    <!-- Rating field (incrementer) -->
+    <div class="mb-3">
+        <label for="rating" class="form-label">Rating</label>
+        <input type="number" name="rating" class="form-control" id="rating" value="{{ show.rating }}" min="0" max="10" step="0.1">
+    </div>
+
+    <!-- Seasons field -->
+    <div class="mb-3">
+        <label for="seasons" class="form-label">Seasons</label>
+        <input type="number" name="seasons" class="form-control" id="seasons" value="{{ show.seasons }}">
+    </div>
+
+    <!-- Episodes per Season field -->
+    <div class="mb-3">
+        <label for="episodes_per_season" class="form-label">Episodes per Season</label>
+        <input type="number" name="episodes_per_season" class="form-control" id="episodes_per_season" value="{{ show.episodes_per_season }}">
+    </div>
+
+    <!-- Show Photo field (display current photo if it exists) -->
+    <div class="mb-3">
+        <label for="photo" class="form-label">Show Photo</label>
+        {% if show.photo %}
+            <div class="mb-2">
+                <img src="{{ show.photo.url }}" alt="Current Photo" class="img-thumbnail" style="width: 100px;">
+            </div>
+            <p><small>Current photo displayed above. Upload a new photo to replace it.</small></p>
+        {% endif %}
+        <input type="file" name="photo" class="form-control" id="photo">
+    </div>
+
     <button type="submit" class="btn btn-primary">Update Show</button>
 </form>
 {% endblock %}

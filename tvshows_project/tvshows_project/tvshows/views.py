@@ -5,37 +5,57 @@ from django.contrib.auth.models import User
 from .models import TVShow
 from .forms import TVShowForm
 from django.contrib import messages
+import datetime
 
+
+# Login view
 def login_view(request):
     if request.method == 'POST':
         username = request.POST['username']
         password = request.POST['password']
-        user = authenticate(request, username=username, password=password)
         
+        user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('home')  # Redirect to the home page after successful login
+            messages.success(request, 'You have logged in successfully!')
+            return redirect('home')  # Redirect to the home page or dashboard
         else:
-            # Add an error message if authentication fails
-            messages.error(request, "Invalid username or password. Please try again.")
-            return redirect('login')  # Redirect back to the login page if authentication fails
-
+            messages.error(request, 'Invalid username or password.')
+    
     return render(request, 'login.html')
+
+
+# Register view
 def register_view(request):
     if request.method == 'POST':
-        username = request.POST.get('username', None)
-        password = request.POST.get('password', None)
-        if not username or not password:
-            return render(request, 'register.html', {'error': 'Username and password are required.'})
+        username = request.POST['username']
+        password = request.POST['password']
+        password2 = request.POST['password2']
+        
+        # Basic validation checks
+        if password != password2:
+            messages.error(request, 'Passwords do not match.')
+            return render(request, 'register.html')
+        
         if User.objects.filter(username=username).exists():
-            return render(request, 'register.html', {'error': 'Username already exists.'})
-        User.objects.create_user(username=username, password=password)
-        return redirect('login')
+            messages.error(request, 'Username already exists.')
+            return render(request, 'register.html')
+        
+        # Create the new user
+        user = User.objects.create_user(username=username, password=password)
+        messages.success(request, 'You have registered successfully!')
+        return redirect('login')  # Redirect to the login page after successful registration
+    
     return render(request, 'register.html')
 
+
+
+# Logout view
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    messages.success(request, "You have been logged out.")
+    return redirect('home')
+
 
 @login_required
 def home(request):
@@ -48,37 +68,83 @@ def show_detail(request, show_id):
     show = get_object_or_404(TVShow, id=show_id)
     return render(request, 'show_detail.html', {'show': show})
 
+# Add show view
+
 @login_required
 def add_show(request):
     if request.method == 'POST':
-        form = TVShowForm(request.POST, request.FILES)
-        if form.is_valid():
-            form.save()
+        title = request.POST.get('title')
+        genre = request.POST.get('genre')
+        description = request.POST.get('description')
+        release_date = request.POST.get('release_date')
+        rating = request.POST.get('rating')
+        seasons = request.POST.get('seasons')
+        episodes_per_season = request.POST.get('episodes_per_season')
+        photo = request.FILES.get('photo')
+
+        if not release_date:
+            messages.error(request, "Release date is required!")
+
+        else:
+            # Continue with saving the TV show
+            TVShow.objects.create(
+                title=title,
+                genre=genre,
+                description=description,
+                release_date=release_date,
+                rating=rating,
+                seasons=seasons,
+                episodes_per_season=episodes_per_season,
+                photo=photo
+            )
+            messages.success(request, 'TV Show added successfully!')
             return redirect('home')
-    else:
-        form = TVShowForm()
 
-    return render(request, 'add_show.html', {'form': form})
+    return render(request, 'add_show.html')
 
 
+
+# Update show view
 @login_required
 def update_show(request, show_id):
-    show = get_object_or_404(TVShow, id=show_id)
-    
+    # Fetch the TV show object you want to update
+    show = TVShow.objects.get(id=show_id)
+
     if request.method == 'POST':
-        form = TVShowForm(request.POST, request.FILES, instance=show)  # Handling file uploads
-        if form.is_valid():
-            form.save()
+        title = request.POST.get('title')
+        genre = request.POST.get('genre')
+        description = request.POST.get('description')
+        release_date = request.POST.get('release_date')
+        rating = request.POST.get('rating')
+        seasons = request.POST.get('seasons')
+        episodes_per_season = request.POST.get('episodes_per_season')
+        photo = request.FILES.get('photo')
+
+        # Validation for missing release date
+        if not release_date:
+            messages.error(request, "Release date is required!")
+        else:
+            # Update the TV show with the new data
+            show.title = title
+            show.genre = genre
+            show.description = description
+            show.release_date = release_date
+            show.rating = rating
+            show.seasons = seasons
+            show.episodes_per_season = episodes_per_season
+            if photo:
+                show.photo = photo
+            show.save()
+            messages.success(request, 'TV Show updated successfully!')
             return redirect('home')
-    else:
-        form = TVShowForm(instance=show)
-    
-    return render(request, 'update_show.html', {'form': form})
+
+    return render(request, 'update_show.html', {'show': show})
 
 @login_required
 def delete_show(request, show_id):
     show = get_object_or_404(TVShow, id=show_id)
     if request.method == 'POST':
         show.delete()
-        return redirect('home')  # Redirect to the list of TV shows after deletion
-    return render(request, 'delete_show.html', {'show': show})  # Optional confirmation page
+        messages.success(request, f'The show "{show.title}" has been deleted successfully!')
+        return redirect('home')
+    return render(request, 'delete_show.html', {'show': show})
